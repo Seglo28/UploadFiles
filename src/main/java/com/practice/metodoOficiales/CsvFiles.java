@@ -3,6 +3,8 @@ package com.practice.metodoOficiales;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.tika.Tika;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.practice.especialidades.CvsDetails;
+import com.practice.mapeos.Students;
 
 public class CsvFiles {
 
@@ -46,11 +49,15 @@ public class CsvFiles {
 		File file = new File ("c:/upload_java/"+document.getOriginalFilename());
 		
 		try {
-			result = inCvsDetails.saveUsingTika(document);
-			
+			//Is this a cvs document?
+			if(inCvsDetails.saveUsingTika(document)) {
+				//Read a column from a cvs document
+				result = inCvsDetails.readingCvsColumn(document);
+			}
 		}catch (IOException e) {
             e.printStackTrace(); 
       }
 		return result;
 	}
+	
 }
