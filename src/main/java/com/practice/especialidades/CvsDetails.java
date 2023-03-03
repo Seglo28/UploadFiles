@@ -62,24 +62,36 @@ public class CvsDetails {
 		return result;
 	}
 	
-	//Create a Json without use dependencies.
+	//Create a Json whitout use dependencies. This document should use a pojo class, use charset utf-8
+		//(I need to validate if it charset is UTF-8 or another one)
 	public List<List<Students>> WithoutDependencies(MultipartFile document) throws IOException {
-		String result = "", line = "";
+		String line = "";
 		File file = new File ("c:/upload_java/"+document.getOriginalFilename());
 		BufferedReader reader = null;
-		StringBuilder sb = new StringBuilder();
 		
 		List<List<Students>> columns = new ArrayList<List<Students>>();
 		
 		try {
 			if(this.saveUsingTika(document)) {
-				reader = new BufferedReader (new FileReader(file));
-				while((line = reader.readLine()) != null) {
-					String[] valores = line.split(";");
-					
-					columns.add(this.saveColumns(valores));
+				if(this.removeBOM(document)){
 				}
-			}	
+				reader = new BufferedReader (new FileReader(file));
+					//______________________________________________________________
+					
+					while ((line = reader.readLine()) != null) {
+	                    String[] row = line.split(";");
+	                    for (int i = 0; i < row.length; i++) {   
+	                        if (i >= columns.size()) {                      	
+	                            columns.add(new ArrayList<Students>());
+	                        }
+	                        Students stud = new Students(row[i]);
+	                        columns.get(i).add(stud);
+	                        }
+					//______________________________________________________________
+					//columns.add(this.saveColumns(valores));
+	                    }			
+					
+				}	
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -87,6 +99,7 @@ public class CvsDetails {
 		return columns;
 	}
 	
+	//This method add every student inside a list
 	private List<Students> saveColumns(String arg[]) {
 		
 		List<Students> valuesColumn = new ArrayList<Students>();
@@ -108,10 +121,8 @@ public class CvsDetails {
 
         List<List<String>> data = new ArrayList<>();
 
-        if(this.removeBOM(document)) {
-        }
+        this.removeBOM(document);
 
-        System.out.println("PRINT-STUFF: Estoy dentro del WHILE.");
         try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
         		while ((line = br.readLine()) != null) {
                     String[] row = line.split(cvsSplitBy);
@@ -174,6 +185,8 @@ public class CvsDetails {
 	 
 	 private boolean removeBOM (MultipartFile document) throws IOException {
 		 Path path = Paths.get("c:/upload_java/"+document.getOriginalFilename());
+		 File file = new File ("c:/upload_java/"+document.getOriginalFilename());
+		 
 		 
 		 if(this.BOMinside(document)) {
 			 byte[] bytes = Files.readAllBytes(path);
@@ -189,6 +202,7 @@ public class CvsDetails {
 	          bb.get(contentAfterFirst3Bytes, 0, contentAfterFirst3Bytes.length);
 	          System.out.println("ELIMINAR EL BOM " +"Removimos el DOM!");
 	          
+	          //Write es un metodo ESTATICO
 	          Files.write(path, contentAfterFirst3Bytes);
 		 } else {
 	          System.out.println("ELIMINAR EL BOM " +"This file doesn't contains UTF-8 BOM!");
